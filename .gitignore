@@ -1,0 +1,7 @@
+__pycache__
+.mypy_cache
+.venv
+poetry.lock
+
+.temp
+sources.txt
