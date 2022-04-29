@@ -1,4 +1,4 @@
-"""Termcast - Liam Masters (2022)"""
+"""TermCast - Liam Masters (2022)"""
 import glob
 import os
 import time
@@ -57,7 +57,10 @@ class TermCast:
 
         self.show_list = []
         for feed in self.feed_list:
-            self.show_list.append(feed.feed.title)
+            updated = feed.entries[0].published_parsed
+            self.show_list.append(
+                feed.feed.title + " - Updated " + time.strftime("%d %b %Y", updated)
+            )
 
     def _show_list_state(self):
         """Draw the list of shows for selection"""
@@ -70,10 +73,10 @@ class TermCast:
             return
 
         self.show = self.feed_list[0]
-        frame = Dialog(3, 3, 60, 20, title="Termcast")
+        frame = Dialog(3, 3, 90, 25, title="TermCast")
         frame.add(1, 1, "Shows:")
 
-        shows_widget = WListBox(50, 16, self.show_list)
+        shows_widget = WListBox(88, 16, self.show_list)
 
         def show_changed(shows):
             self.show = self.feed_list[shows.choice]
@@ -82,11 +85,11 @@ class TermCast:
         frame.add(1, 2, shows_widget)
 
         select_button = WButton(8, "Select")
-        frame.add(2, 18, select_button)
+        frame.add(2, 21, select_button)
         select_button.finish_dialog = ACTION_OK
 
         exit_button = WButton(8, "Exit")
-        frame.add(12, 18, exit_button)
+        frame.add(12, 21, exit_button)
         exit_button.finish_dialog = ACTION_CANCEL
 
         self.result = frame.loop()
@@ -99,7 +102,7 @@ class TermCast:
             self.state.pop(0)
             return
 
-        frame = Dialog(3, 3, 60, 20, title="Termcast")
+        frame = Dialog(3, 3, 90, 25, title="TermCast")
         episodes = self.show.entries
         self.episode = episodes[0]
 
@@ -118,11 +121,11 @@ class TermCast:
         frame.add(1, 2, episode_list)
 
         select_button = WButton(8, "Select")
-        frame.add(2, 18, select_button)
+        frame.add(2, 21, select_button)
         select_button.finish_dialog = ACTION_OK
 
         back_button = WButton(8, "Back")
-        frame.add(12, 18, back_button)
+        frame.add(12, 21, back_button)
         back_button.finish_dialog = ACTION_PREV
 
         self.result = frame.loop()
@@ -203,7 +206,7 @@ class TermCast:
                 download_link = link.href
                 break
 
-        frame = Dialog(3, 3, 80, 7, title="Termcast")
+        frame = Dialog(3, 3, 70, 7, title="TermCast")
 
         self.media_player = vlc.MediaPlayer(download_link)
 
@@ -229,7 +232,7 @@ class TermCast:
         frame.add(32, 2, shows_button)
         shows_button.finish_dialog = ACTION_CANCEL
 
-        title = WLabel(self.episode.title, w=76)
+        title = WLabel(self.episode.title, w=66)
         frame.add(2, 5, title)
 
         self.result = frame.loop()
