@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "termcast"
+version = "0.1.0"
+description = "A terminal bsaed podcast player from RSS feeds"
+authors = ["Liam Masters <liam@liammasters.space>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+feedparser = "^6.0.8"
+requests = "^2.27.1"
+python-vlc = "^3.0.16120"
+picotui = "^1.2.1"
+
+[tool.poetry.dev-dependencies]
+black = {version = "^22.3.0", allow-prereleases = true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
