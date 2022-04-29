@@ -1,2 +1,2 @@
-changelog.com/podcast/feed
-feeds.megaphone.fm/landofthegiants
+https://changelog.com/podcast/feed
+https://feeds.megaphone.fm/landofthegiants

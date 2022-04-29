@@ -46,7 +46,7 @@ class TermCast:
                 retries = 0
                 parsed = False
                 while retries < 3 and not parsed:
-                    res = requests.get("https://" + source.rstrip("\n"))
+                    res = requests.get(source.rstrip("\n"))
                     if res.status_code == 200:
                         self.feed_list.append(feedparser.parse(res.text))
                         parsed = True
