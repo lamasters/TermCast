@@ -10,7 +10,7 @@ python = "^3.7"
 feedparser = "^6.0.8"
 requests = "^2.27.1"
 python-vlc = "^3.0.16120"
-picotui = "^1.2.1"
+picotui = {git = "https://github.com/lamasters/picotui.git"}
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.3.0", allow-prereleases = true}
