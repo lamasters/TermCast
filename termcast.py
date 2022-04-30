@@ -47,14 +47,14 @@ class TermCast:
         """Read the config file and download source list"""
         print("Updating sources... ", end="")
         with open("config.json", "r", encoding="utf-8") as file:
-            config = json.loads(file.readlines())
+            config = json.loads(file.read())
 
-            self.source_type = config.source_type
-            self.source_path = config.source_path
+            self.source_type = config["source_type"]
+            self.source_path = config["source_path"]
 
         if self.source_type == "git":
             self.repo = Repo("termcast_sources")
-            self.repo.origin.pull()
+            self.repo.remotes.origin.pull()
 
         print("Done")
 
@@ -66,8 +66,8 @@ class TermCast:
         with open(
             os.path.join(self.source_path, "sources.json"), "r", encoding="utf-8"
         ) as file:
-            source_list = json.loads(file.readlines())
-            for source in source_list.sources:
+            source_list = json.loads(file.read())
+            for source in source_list["sources"]:
                 retries = 0
                 parsed = False
                 while retries < 3 and not parsed:
@@ -195,14 +195,14 @@ class TermCast:
         with open(
             os.path.join(self.source_path, "listen_time.json"), "r", encoding="utf-8"
         ) as file:
-            self.listen_data = json.loads(file.readlines())
-            episodes_listened = self.listen_data.epsiodes
-            listen_times = self.listen_data.listen_time
+            self.listen_data = json.loads(file.read())
+            episodes_listened = self.listen_data["episodes"]
+            listen_times = self.listen_data["listen_times"]
             file.close()
 
         if self.episode.title in episodes_listened:
             self.listen_time = listen_times[
-                self.listen_data.episodes.index(self.episode.title)
+                self.listen_data["episodes"].index(self.episode.title)
             ]
 
     def _write_listen_time(self):
@@ -214,13 +214,13 @@ class TermCast:
         with open(
             os.path.join(self.source_path, "listen_time.json"), "w", encoding="utf-8"
         ) as file:
-            if self.episode.title in self.listen_data.episodes:
-                self.listen_data.listen_times[
-                    self.listen_data.episodes.index(self.episode.title)
+            if self.episode.title in self.listen_data["episodes"]:
+                self.listen_data["listen_times"][
+                    self.listen_data["episodes"].index(self.episode.title)
                 ] = listen_time
             else:
-                self.listen_data.episodes.append(self.episode.title)
-                self.listen_data.listen_times.append(listen_time)
+                self.listen_data["episodes"].append(self.episode.title)
+                self.listen_data["listen_times"].append(listen_time)
 
             file.write(json.dumps(self.listen_data))
             file.close()
@@ -231,10 +231,10 @@ class TermCast:
                 changes.append(item.a_path)
 
             self.repo.index.add(changes)
-            self.repo.commit(
-                "Update listen times " + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            self.repo.index.commit(
+                "Update listen times " + datetime.now().strftime("%d/%m/%Y %H_%M_%S")
             )
-            self.repo.origin.push()
+            self.repo.remotes.origin.push()
 
     def _player_state(self):
         """Handle playing the selected episode"""
@@ -295,6 +295,7 @@ class TermCast:
 
     def main(self):
         """Main function to run the player state"""
+        self._load_config()
         self._get_feeds()
 
         self.screen = Screen()
