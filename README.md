@@ -1,5 +1,5 @@
 # TermCast
-A terminal-based podcast player from RSS feeds
+A terminal-based podcast player that syncs between devices
 
 ## Installation
 This requires VLC Media Player to be installed
