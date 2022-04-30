@@ -3,5 +3,4 @@ __pycache__
 .venv
 poetry.lock
 
-.temp
-sources.txt
+termcast_sources
