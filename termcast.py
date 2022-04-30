@@ -1,11 +1,13 @@
 """TermCast - Liam Masters (2022)"""
-import glob
+import json
 import os
 import time
 
 import feedparser
 import requests
 import vlc
+from datetime import datetime
+from git import Repo
 from picotui.defs import C_BLUE, C_WHITE
 from picotui.screen import Screen
 from picotui.widgets import (
@@ -36,13 +38,36 @@ class TermCast:
         self.media_player = None
         self.listen_time = 0
 
+        self.source_type = ""
+        self.source_path = "termcast_sources"
+        self.listen_data = {}
+        self.repo = None
+
+    def _load_config(self):
+        """Read the config file and download source list"""
+        print("Updating sources... ", end="")
+        with open("config.json", "r", encoding="utf-8") as file:
+            config = json.loads(file.readlines())
+
+            self.source_type = config.source_type
+            self.source_path = config.source_path
+
+        if self.source_type == "git":
+            self.repo = Repo("termcast_sources")
+            self.repo.origin.pull()
+
+        print("Done")
+
     def _get_feeds(self):
         """Download RSS feeds defined in source list"""
-        print("Downloading feeds...")
+        print("Downloading feeds... ", end="")
 
         self.feed_list = []
-        with open("./sources.txt", "r", encoding="utf-8") as file:
-            for source in file.readlines():
+        with open(
+            os.path.join(self.source_path, "sources.json"), "r", encoding="utf-8"
+        ) as file:
+            source_list = json.loads(file.readlines())
+            for source in source_list.sources:
                 retries = 0
                 parsed = False
                 while retries < 3 and not parsed:
@@ -61,6 +86,8 @@ class TermCast:
             self.show_list.append(
                 feed.feed.title + " - Updated " + time.strftime("%d %b %Y", updated)
             )
+
+        print("Done")
 
     def _show_list_state(self):
         """Draw the list of shows for selection"""
@@ -165,27 +192,49 @@ class TermCast:
     def _get_listen_time(self):
         """Get the time listened to an eipsode from a file"""
         self.listen_time = 0
-        files = glob.glob("./.temp/*")
-        if "./.temp/" + self.episode.title + ".dat" in files:
-            with open(
-                "./.temp/" + self.episode.title + ".dat", "r", encoding="utf-8"
-            ) as file:
-                self.listen_time = int(file.readline().rstrip("\n"))
-                file.close()
+        with open(
+            os.path.join(self.source_path, "listen_time.json"), "r", encoding="utf-8"
+        ) as file:
+            self.listen_data = json.loads(file.readlines())
+            episodes_listened = self.listen_data.epsiodes
+            listen_times = self.listen_data.listen_time
+            file.close()
+
+        if self.episode.title in episodes_listened:
+            self.listen_time = listen_times[
+                self.listen_data.episodes.index(self.episode.title)
+            ]
 
     def _write_listen_time(self):
         """Write time listened to an episode to a file when it's stopped"""
         listen_time = self.media_player.get_time()
         if listen_time > self.media_player.get_length() - 3 * 60 * 1000:
             listen_time = 0  # Reset listen time if it's within the last 3 minutes
-        try:
-            os.mkdir(".temp")
-        except FileExistsError:
-            pass
+
         with open(
-            ".temp/" + self.episode.title + ".dat", "w+", encoding="utf-8"
+            os.path.join(self.source_path, "listen_time.json"), "w", encoding="utf-8"
         ) as file:
-            file.write(str(listen_time))
+            if self.episode.title in self.listen_data.episodes:
+                self.listen_data.listen_times[
+                    self.listen_data.episodes.index(self.episode.title)
+                ] = listen_time
+            else:
+                self.listen_data.episodes.append(self.episode.title)
+                self.listen_data.listen_times.append(listen_time)
+
+            file.write(json.dumps(self.listen_data))
+            file.close()
+
+        if self.source_type == "git":
+            changes = []
+            for item in self.repo.index.diff(None):
+                changes.append(item.a_path)
+
+            self.repo.index.add(changes)
+            self.repo.commit(
+                "Update listen times " + datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            )
+            self.repo.origin.push()
 
     def _player_state(self):
         """Handle playing the selected episode"""
