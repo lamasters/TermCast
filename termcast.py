@@ -287,6 +287,7 @@ class TermCast:
         self.result = frame.loop()
 
         self._write_listen_time()
+        self.media_player.stop()
 
         self.state.append(self._show_list_state)
         self.state.pop(0)
