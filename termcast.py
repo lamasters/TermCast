@@ -3,10 +3,10 @@ import json
 import os
 import time
 
+from datetime import datetime
 import feedparser
 import requests
 import vlc
-from datetime import datetime
 from git import Repo
 from picotui.defs import C_BLUE, C_WHITE
 from picotui.screen import Screen
@@ -18,6 +18,7 @@ from picotui.widgets import (
     WButton,
     WLabel,
     WListBox,
+    WTextEntry,
 )
 
 
@@ -190,6 +191,23 @@ class TermCast:
         elif new_time < self.media_player.get_length():
             self.media_player.set_time(new_time)
 
+    def _handle_set_time(self, set_time_str, time_format):
+        """Handle set time by string"""
+        try:
+            set_time = time.strptime(set_time_str, time_format)
+        except ValueError:
+            if time_format == "%H:%M:%S":
+                self._handle_set_time(set_time_str, "%M:%S")
+            elif time_format == "%M:%S":
+                self._handle_set_time(set_time_str, "%S")
+            return
+        new_time = (
+            set_time.tm_hour * 3600 + set_time.tm_min * 60 + set_time.tm_sec
+        ) * 1000
+
+        if new_time < self.media_player.get_length():
+            self.media_player.set_time(new_time)
+
     def _get_listen_time(self):
         """Get the time listened to an eipsode from a file"""
         self.listen_time = 0
@@ -246,7 +264,7 @@ class TermCast:
         if self.result == ACTION_CANCEL:
             self.state.pop(0)
             return
-        elif self.result == ACTION_PREV:
+        if self.result == ACTION_PREV:
             self.state.append(self._show_list_state)
             self.state.pop(0)
             return
@@ -281,9 +299,18 @@ class TermCast:
         skip_forward.on("click", lambda _: self._handle_skip(10))
         frame.add(22, 2, skip_forward)
 
+        set_time_field = WTextEntry(10, "H:M:S")
+        frame.add(32, 2, set_time_field)
+
+        set_time_button = WButton(8, "Set")
+        set_time_button.on(
+            "click", lambda _: self._handle_set_time(set_time_field.get(), "%H:%M:%S")
+        )
+        frame.add(44, 2, set_time_button)
+
         shows_button = WButton(8, "Shows")
         shows_button.on("click", lambda _: self._handle_stop())
-        frame.add(32, 2, shows_button)
+        frame.add(54, 2, shows_button)
         shows_button.finish_dialog = ACTION_CANCEL
 
         title = WLabel(self.episode.title, w=66)
