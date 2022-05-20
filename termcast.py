@@ -253,6 +253,10 @@ class TermCast:
         for link in self.episode.links:
             if link.type == "audio/mpeg":
                 download_link = link.href
+                res = requests.get(download_link)
+                while res.url != download_link:
+                    download_link = res.url
+                    res = requests.get(download_link)
                 break
 
         frame = Dialog(3, 3, 70, 7, title="TermCast")
