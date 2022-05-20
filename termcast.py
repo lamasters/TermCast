@@ -46,7 +46,7 @@ class TermCast:
 
     def _load_config(self):
         """Read the config file and download source list"""
-        print("Updating sources... ", end="")
+        print("Updating sources... ")
         with open("config.json", "r", encoding="utf-8") as file:
             config = json.loads(file.read())
 
@@ -61,7 +61,7 @@ class TermCast:
 
     def _get_feeds(self):
         """Download RSS feeds defined in source list"""
-        print("Downloading feeds... ", end="")
+        print("Downloading feeds... ")
 
         self.feed_list = []
         with open(
@@ -257,9 +257,7 @@ class TermCast:
 
     def _player_state(self):
         """Handle playing the selected episode"""
-        self.screen.attr_color(C_WHITE, C_BLUE)
-        self.screen.cls()
-        self.screen.attr_reset()
+        print("Downloading episode...")
 
         if self.result == ACTION_CANCEL:
             self.state.pop(0)
@@ -277,6 +275,10 @@ class TermCast:
                     download_link = res.url
                     res = requests.get(download_link)
                 break
+
+        self.screen.attr_color(C_WHITE, C_BLUE)
+        self.screen.cls()
+        self.screen.attr_reset()
 
         frame = Dialog(3, 3, 70, 7, title="TermCast")
 
