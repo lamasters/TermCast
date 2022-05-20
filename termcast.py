@@ -169,6 +169,7 @@ class TermCast:
         else:
             self.media_player.pause()
             button.t = "Play"
+        self._write_listen_time()
         button.redraw()
         time.sleep(0.3)
         self.screen.attr_color(C_WHITE, C_BLUE)
